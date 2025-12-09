@@ -5,6 +5,7 @@ import time
 import warnings
 
 import torch
+import numpy as np
 
 warnings.filterwarnings("ignore")
 from utils import (
@@ -27,8 +28,12 @@ def main():
     width = 1024
     num_inference_steps = 8
     guidance_scale = 0.0
-    seed = 42
-    attn_backend = os.environ.get("ZIMAGE_ATTENTION", "_native_flash")
+    seed = np.random.randint(0, 10000)
+
+    # Pick attention backend (env wins; default flash on CUDA, math elsewhere)
+    attn_backend = os.environ.get("ZIMAGE_ATTENTION")
+    if attn_backend is None:
+        attn_backend = "_native_flash" if torch.cuda.is_available() else "_native_math"
     prompt = (
         "Young Chinese woman in red Hanfu, intricate embroidery. Impeccable makeup, red floral forehead pattern. "
         "Elaborate high bun, golden phoenix headdress, red flowers, beads. Holds round folding fan with lady, trees, bird. "
@@ -62,18 +67,40 @@ def main():
     set_attention_backend(attn_backend)
     print(f"Chosen attention backend: {attn_backend}")
 
-    # Gen an image
-    start_time = time.time()
-    images = generate(
-        prompt=prompt,
-        **components,
-        height=height,
-        width=width,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        generator=torch.Generator(device).manual_seed(seed),
-    )
-    end_time = time.time()
+    # Gen an image; if a kernel is unavailable, fall back to math backend automatically
+    try:
+        start_time = time.time()
+        images = generate(
+            prompt=prompt,
+            **components,
+            height=height,
+            width=width,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            generator=torch.Generator(device).manual_seed(seed),
+        )
+        end_time = time.time()
+    except RuntimeError as e:
+        if "No available kernel" in str(e) or "Triton" in str(e):
+            fallback_backend = "_native_math"
+            print(
+                f"Attention backend {attn_backend} failed ({e}); retrying with {fallback_backend}."
+            )
+            set_attention_backend(fallback_backend)
+            start_time = time.time()
+            images = generate(
+                prompt=prompt,
+                **components,
+                height=height,
+                width=width,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                generator=torch.Generator(device).manual_seed(seed),
+            )
+            end_time = time.time()
+        else:
+            raise
+
     print(f"Time taken: {end_time - start_time:.2f} seconds")
     images[0].save(output_path)
 

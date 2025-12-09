@@ -6,8 +6,12 @@ import time
 
 import torch
 
-from inference import ensure_model_weights
-from utils import AttentionBackend, load_from_local_dir, set_attention_backend
+from utils import (
+    AttentionBackend,
+    ensure_model_weights,
+    load_from_local_dir,
+    set_attention_backend,
+)
 from zimage import generate
 
 
