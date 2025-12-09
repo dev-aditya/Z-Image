@@ -17,6 +17,10 @@ from utils import (
 from zimage import generate
 
 
+def _banner(msg: str) -> None:
+    print(f"\n========== {msg} ==========")
+
+
 def main():
     model_path = ensure_model_weights(
         "ckpts/Z-Image-Turbo", verify=False
@@ -44,28 +48,28 @@ def main():
     # Device selection priority: cuda -> tpu -> mps -> cpu
     if torch.cuda.is_available():
         device = "cuda"
-        print("Chosen device: cuda")
+        _banner("Chosen device: cuda")
     else:
         try:
             import torch_xla
             import torch_xla.core.xla_model as xm
 
             device = xm.xla_device()
-            print("Chosen device: tpu")
+            _banner("Chosen device: tpu")
         except (ImportError, RuntimeError):
             if torch.backends.mps.is_available():
                 device = "mps"
-                print("Chosen device: mps")
+                _banner("Chosen device: mps")
             else:
                 device = "cpu"
-                print("Chosen device: cpu")
+                _banner("Chosen device: cpu")
     # Load models
     components = load_from_local_dir(
         model_path, device=device, dtype=dtype, compile=compile
     )
     AttentionBackend.print_available_backends()
     set_attention_backend(attn_backend)
-    print(f"Chosen attention backend: {attn_backend}")
+    _banner(f"Attention backend: {attn_backend}")
 
     # Gen an image; if a kernel is unavailable, fall back to math backend automatically
     try:
@@ -101,7 +105,7 @@ def main():
         else:
             raise
 
-    print(f"Time taken: {end_time - start_time:.2f} seconds")
+    _banner(f"Image saved to {output_path} | Time: {end_time - start_time:.2f} s")
     images[0].save(output_path)
 
     ### !! For best speed performance, recommend to use `_flash_3` backend and set `compile=True`

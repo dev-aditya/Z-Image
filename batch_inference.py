@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 import time
-
+import numpy
 import torch
 
 from utils import (
@@ -13,6 +13,10 @@ from utils import (
     set_attention_backend,
 )
 from zimage import generate
+
+
+def _banner(msg: str) -> None:
+    print(f"\n========== {msg} ==========")
 
 
 def read_prompts(path: str) -> list[str]:
@@ -43,19 +47,19 @@ def select_device() -> str:
     """Choose the best available device without repeating detection logic."""
 
     if torch.cuda.is_available():
-        print("Chosen device: cuda")
+        _banner("Chosen device: cuda")
         return "cuda"
     try:
         import torch_xla.core.xla_model as xm
 
         device = xm.xla_device()
-        print("Chosen device: tpu")
+        _banner("Chosen device: tpu")
         return device
     except (ImportError, RuntimeError):
         if torch.backends.mps.is_available():
-            print("Chosen device: mps")
+            _banner("Chosen device: mps")
             return "mps"
-        print("Chosen device: cpu")
+        _banner("Chosen device: cpu")
         return "cpu"
 
 
@@ -84,12 +88,12 @@ def main():
     )
     AttentionBackend.print_available_backends()
     set_attention_backend(attn_backend)
-    print(f"Chosen attention backend: {attn_backend}")
+    _banner(f"Attention backend: {attn_backend}")
 
     for idx, prompt in enumerate(PROMPTS, start=1):
         output_path = output_dir / f"prompt-{idx:02d}-{slugify(prompt)}.png"
-        seed = 42 + idx - 1
-        generator = torch.Generator(device)  # .manual_seed(seed)
+        seed = numpy.random.randint(0, 10000)
+        generator = torch.Generator(device).manual_seed(seed)
 
         start_time = time.time()
         images = generate(
@@ -103,9 +107,9 @@ def main():
         )
         elapsed = time.time() - start_time
         images[0].save(output_path)
-        print(f"[{idx}/{len(PROMPTS)}] Saved {output_path} in {elapsed:.2f} seconds")
+        print(f"→ [{idx}/{len(PROMPTS)}] Saved {output_path} in {elapsed:.2f} seconds")
 
-    print("Done.")
+    _banner("Batch complete")
 
 
 if __name__ == "__main__":
