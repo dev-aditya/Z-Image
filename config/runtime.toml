@@ -4,7 +4,7 @@
 
 [prompts]
 # For batch mode: path to a prompts file (one prompt per line). Use "auto" to use the built-in default path.
-file = "auto"
+file = "prompts/prompt1.txt"
 # For single-image mode: optional inline prompt text. If set alongside a file, that is a conflict.
 single_prompt = "auto"
 
@@ -25,4 +25,22 @@ seed = "auto"
 # Use "auto" to let the program pick based on device.
 attention_backend = "auto"
 # torch.compile: set true/false or "auto" (defaults to false unless env overrides).
-compile = "auto"
+compile = "false"
+
+# Example configuration (uncomment and edit as needed):
+# [prompts]
+# file = "prompts/prompt1.txt"
+# single_prompt = "A futuristic electric motorcycle parked in a neon-lit alley, 3D render."
+#
+# [output]
+# output_dir = "outputs"
+# output_path = "example.png"
+#
+# [inference]
+# height = 1024
+# width = 1024
+# num_inference_steps = 8
+# guidance_scale = 0.0
+# seed = 42
+# attention_backend = "_native_flash"
+# compile = false

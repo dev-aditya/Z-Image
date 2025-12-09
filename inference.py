@@ -23,9 +23,25 @@ def _banner(msg: str) -> None:
     print(f"\n========== {msg} ==========")
 
 
+def _print_config_summary(
+    cfg: RuntimeConfig, *, attn_backend: str, seed: int, prompt_src: str
+):
+    _banner("Runtime configuration")
+    print(f"prompt_source : {prompt_src}")
+    print(f"output_path   : {cfg.output_path}")
+    print(f"height x width: {cfg.height} x {cfg.width}")
+    print(f"steps         : {cfg.num_inference_steps}")
+    print(f"guidance      : {cfg.guidance_scale}")
+    print(f"attention     : {attn_backend}")
+    print(f"compile       : {cfg.compile}")
+    print(f"seed          : {seed}")
+
+
 def main():
     cfg: RuntimeConfig = load_runtime_config()
-    model_path = ensure_model_weights("ckpts/Z-Image-Turbo", verify=False)  # True to verify with md5
+    model_path = ensure_model_weights(
+        "ckpts/Z-Image-Turbo", verify=False
+    )  # True to verify with md5
     dtype = torch.bfloat16
     compile = cfg.compile
     output_path: Path = cfg.output_path
@@ -43,15 +59,23 @@ def main():
     # Resolve prompt
     if cfg.prompt_text:
         prompt = cfg.prompt_text
+        prompt_src = "single_prompt (inline)"
     else:
         prompt_path = cfg.prompt_file
         if prompt_path is None:
-            raise ConfigConflictError("No prompt source provided; set 'single_prompt' or 'prompt_file'")
+            raise ConfigConflictError(
+                "No prompt source provided; set 'single_prompt' or 'prompt_file'"
+            )
         with prompt_path.open("r", encoding="utf-8") as f:
             lines = [line.strip() for line in f if line.strip()]
         if not lines:
             raise ValueError(f"Prompt file is empty: {prompt_path}")
         prompt = lines[0]
+        prompt_src = f"prompt_file ({prompt_path})"
+
+    _print_config_summary(
+        cfg, attn_backend=attn_backend, seed=seed, prompt_src=prompt_src
+    )
 
     # Device selection priority: cuda -> tpu -> mps -> cpu
     if torch.cuda.is_available():

@@ -67,7 +67,13 @@ def _coerce_str(val: Any) -> str:
     return str(val)
 
 
-def _resolve(name: str, env_key: Optional[str], cfg_value: Any, default_value: Any, coerce: Callable[[Any], Any]):
+def _resolve(
+    name: str,
+    env_key: Optional[str],
+    cfg_value: Any,
+    default_value: Any,
+    coerce: Callable[[Any], Any],
+):
     env_raw = os.environ.get(env_key) if env_key else None
     env_set = env_raw is not None
     env_val = coerce(env_raw) if env_set else None
@@ -76,7 +82,9 @@ def _resolve(name: str, env_key: Optional[str], cfg_value: Any, default_value: A
     cfg_val = coerce(cfg_value) if cfg_set else None
 
     if env_set and cfg_set and env_val != cfg_val:
-        raise ConfigConflictError(f"Conflict for '{name}': env {env_key}={env_raw!r} vs config {cfg_val!r}")
+        raise ConfigConflictError(
+            f"Conflict for '{name}': env {env_key}={env_raw!r} vs config {cfg_val!r}"
+        )
 
     if env_set:
         return env_val
@@ -86,7 +94,9 @@ def _resolve(name: str, env_key: Optional[str], cfg_value: Any, default_value: A
 
 
 def load_runtime_config(config_path: Optional[str | Path] = None) -> RuntimeConfig:
-    cfg_path = Path(config_path or os.environ.get("ZIMAGE_CONFIG", "config/runtime.toml"))
+    cfg_path = Path(
+        config_path or os.environ.get("ZIMAGE_CONFIG", "config/runtime.toml")
+    )
     if not cfg_path.exists():
         raise FileNotFoundError(f"Config file not found: {cfg_path}")
 
@@ -113,7 +123,9 @@ def load_runtime_config(config_path: Optional[str | Path] = None) -> RuntimeConf
     )
 
     if prompt_file and prompt_text:
-        raise ConfigConflictError("Specify either 'prompt_file' or 'prompt_text', not both")
+        raise ConfigConflictError(
+            "Specify either 'prompt_file' or 'prompt_text', not both"
+        )
 
     output_dir = _resolve(
         "output_dir",

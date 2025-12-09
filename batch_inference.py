@@ -20,6 +20,18 @@ def _banner(msg: str) -> None:
     print(f"\n========== {msg} ==========")
 
 
+def _print_config_summary(cfg: RuntimeConfig, *, attn_backend: str, prompt_path: Path):
+    _banner("Runtime configuration")
+    print(f"prompt_file   : {prompt_path}")
+    print(f"output_dir    : {cfg.output_dir}")
+    print(f"height x width: {cfg.height} x {cfg.width}")
+    print(f"steps         : {cfg.num_inference_steps}")
+    print(f"guidance      : {cfg.guidance_scale}")
+    print(f"attention     : {attn_backend}")
+    print(f"compile       : {cfg.compile}")
+    print(f"seed          : {cfg.seed if cfg.seed is not None else 'auto/random'}")
+
+
 def read_prompts(path: Path) -> list[str]:
     """Read prompts from a text file (one per line, empty lines skipped)."""
 
@@ -89,12 +101,19 @@ def main():
 
     prompt_path = cfg.prompt_file
     if prompt_path is None:
-        raise ConfigConflictError("No prompt file specified; set prompts.file in config")
+        raise ConfigConflictError(
+            "No prompt file specified; set prompts.file in config"
+        )
+    _print_config_summary(cfg, attn_backend=attn_backend, prompt_path=prompt_path)
     prompts = read_prompts(prompt_path)
 
     for idx, prompt in enumerate(prompts, start=1):
         output_path = output_dir / f"prompt-{idx:02d}-{slugify(prompt)}.png"
-        seed = cfg.seed + idx - 1 if cfg.seed is not None else numpy.random.randint(0, 10000)
+        seed = (
+            cfg.seed + idx - 1
+            if cfg.seed is not None
+            else numpy.random.randint(0, 10000)
+        )
         generator = torch.Generator(device).manual_seed(seed)
 
         start_time = time.time()
