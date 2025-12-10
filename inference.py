@@ -24,7 +24,12 @@ def _banner(msg: str) -> None:
 
 
 def _print_config_summary(
-    cfg: RuntimeConfig, *, attn_backend: str, seed: int, prompt_src: str
+    cfg: RuntimeConfig,
+    *,
+    attn_backend: str,
+    seed: int,
+    prompt_src: str,
+    compile_flag: bool,
 ):
     _banner("Runtime configuration")
     print(f"prompt_source : {prompt_src}")
@@ -33,8 +38,21 @@ def _print_config_summary(
     print(f"steps         : {cfg.num_inference_steps}")
     print(f"guidance      : {cfg.guidance_scale}")
     print(f"attention     : {attn_backend}")
-    print(f"compile       : {cfg.compile}")
+    print(f"compile       : {compile_flag}")
     print(f"seed          : {seed}")
+
+
+def _resolve_compile(flag: bool) -> bool:
+    if not flag:
+        return False
+    try:
+        import triton  # type: ignore
+
+        _ = triton
+        return True
+    except Exception:
+        _banner("Triton not available; disabling torch.compile")
+        return False
 
 
 def main():
@@ -43,7 +61,7 @@ def main():
         "ckpts/Z-Image-Turbo", verify=False
     )  # True to verify with md5
     dtype = torch.bfloat16
-    compile = cfg.compile
+    compile = _resolve_compile(bool(cfg.compile))
     output_path: Path = cfg.output_path
     height = cfg.height
     width = cfg.width
@@ -74,7 +92,11 @@ def main():
         prompt_src = f"prompt_file ({prompt_path})"
 
     _print_config_summary(
-        cfg, attn_backend=attn_backend, seed=seed, prompt_src=prompt_src
+        cfg,
+        attn_backend=attn_backend,
+        seed=seed,
+        prompt_src=prompt_src,
+        compile_flag=compile,
     )
 
     # Device selection priority: cuda -> tpu -> mps -> cpu

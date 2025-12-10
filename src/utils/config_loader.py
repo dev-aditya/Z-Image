@@ -111,7 +111,7 @@ def load_runtime_config(config_path: Optional[str | Path] = None) -> RuntimeConf
         "prompt_file",
         env_key="PROMPTS_FILE",
         cfg_value=prompts_cfg.get("file"),
-        default_value=Path("prompts/prompt1.txt"),
+        default_value=None,
         coerce=lambda v: Path(_coerce_str(v)),
     )
     prompt_text = _resolve(

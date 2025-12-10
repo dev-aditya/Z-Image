@@ -32,6 +32,19 @@ def _print_config_summary(cfg: RuntimeConfig, *, attn_backend: str, prompt_path:
     print(f"seed          : {cfg.seed if cfg.seed is not None else 'auto/random'}")
 
 
+def _resolve_compile(flag: bool) -> bool:
+    if not flag:
+        return False
+    try:
+        import triton  # type: ignore
+
+        _ = triton
+        return True
+    except Exception:
+        _banner("Triton not available; disabling torch.compile")
+        return False
+
+
 def read_prompts(path: Path) -> list[str]:
     """Read prompts from a text file (one per line, empty lines skipped)."""
 
@@ -77,7 +90,7 @@ def main():
 
     model_path = ensure_model_weights("ckpts/Z-Image-Turbo")
     dtype = torch.bfloat16
-    compile = cfg.compile
+    compile = _resolve_compile(bool(cfg.compile))
     height = cfg.height
     width = cfg.width
     num_inference_steps = cfg.num_inference_steps
