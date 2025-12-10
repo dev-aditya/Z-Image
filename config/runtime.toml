@@ -4,9 +4,9 @@
 
 [prompts]
 # For batch mode: path to a prompts file (one prompt per line). Use "auto" to use the built-in default path.
-file = "auto"
+file = "prompts/prompt2.txt"
 # For single-image mode: optional inline prompt text. If set alongside a file, that is a conflict.
-single_prompt = "An ultra‑photorealistic twilight scene of a sprawling solarpunk vertical city built along a terraced cliffside, where sleek glass-and-timber skyscrapers are draped in dense hanging gardens of ivy, flowering vines, and micro-orchards, every balcony lined with solar glass railings and vertical wind turbines quietly spinning above rooftop community greenhouses, while at street level people of diverse ages and cultures stroll along car-free, tree-lined walkways illuminated by warm bioluminescent plants and soft amber lanterns, rainwater channels carved into the stone pavement reflecting the skyline like liquid mirrors, distant mountains fading into low mist under a sky streaked with pastel orange and deep cobalt clouds, captured as a wide-angle cinematic shot on a Sony A7R V with a 24mm f/1.4 lens at blue hour, 8K resolution, natural global illumination, physically accurate soft shadows, high dynamic range, crisp textures on wood, glass, foliage, and stone, subtle atmospheric haze for depth, and a balanced composition following the rule of thirds to emphasize the harmony between advanced renewable technology and lush rewilded nature."
+single_prompt = "auto"
 
 [output]
 # Output directory for batch mode.
@@ -17,15 +17,15 @@ output_path = "auto"
 [inference]
 height = "auto"
 width = "auto"
-num_inference_steps = 40
-guidance_scale = 4
+num_inference_steps = 10
+guidance_scale = 0
 # Seed: use integer for deterministic runs; "auto" randomizes.
 seed = "auto"
 # Attention backend options include: "_flash_3", "flash", "_native_flash", "native", "_native_math".
 # Use "auto" to let the program pick based on device.
 attention_backend = "native"
 # torch.compile: set true/false or "auto" (defaults to false unless env overrides).
-compile = "true"
+compile = "false"
 
 # Example configuration (uncomment and edit as needed):
 # [prompts]
